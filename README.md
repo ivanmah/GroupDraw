@@ -26,3 +26,4 @@ The Clear Canvas button clears the **PKCanvasView** by initializing a new **PKDr
 - The _redo_ functionality does not work as intended in its current implementation
 - On several occasions, **PKStroke** synchronization does not occur as intended, even though no major errors are thrown or encountered; such incidents have decreased in frequency over the past few days, but bears noting and observation
 - As erasing **PKStroke**s could lead to a single **PKStroke** turning into several **PKStroke**s, it is not advised to use the **Eraser** tool for the time being 
+- **GroupStateObserver.IsEligibleForGroupSession** is buggy as mentioned [here](https://developer.apple.com/forums/thread/682484?answerId=678632022#678632022)
