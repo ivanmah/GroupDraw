@@ -45,6 +45,7 @@
 			isa = PBXGroup;
 			children = (
 				2D4B023426725E6200CBF1DD /* GroupDraw */,
+				2D546576267B6CA1001A7061 /* README.md */,
 				2D4B023326725E6200CBF1DD /* Products */,
 			);
 			sourceTree = "<group>";
@@ -65,7 +66,6 @@
 				2D4B023E26725E6300CBF1DD /* Assets.xcassets */,
 				2D4B024026725E6300CBF1DD /* LaunchScreen.storyboard */,
 				2D4B024326725E6300CBF1DD /* Info.plist */,
-				2D546576267B6CA1001A7061 /* README.md */,
 			);
 			path = GroupDraw;
 			sourceTree = "<group>";
