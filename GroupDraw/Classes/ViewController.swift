@@ -27,7 +27,7 @@ class ViewController: UIViewController {
     private var groupSession: GroupSession<GroupDrawActivity>?
     private var groupSessionMessenger: GroupSessionMessenger?
     private var groupStateObserver: GroupStateObserver?
-    private var tasks = Set<Task.Handle<Void, Never>>()
+    private var tasks = Set<Task<Void, Never>>()
     private var hasRecentlyDrawn = false
 
     private var subscriptions = Set<AnyCancellable>()
@@ -267,6 +267,21 @@ extension ViewController {
 
     @IBAction func startGroupActivityBarButtonItemTapped(sender: UIBarButtonItem) {
         startGroupActivity()
+        
+        guard let groupActivity else { return }
+        
+//        let itemProvider = NSItemProvider()
+//        itemProvider.registerGroupActivity(groupActivity)
+//
+//        let configuration = UIActivityItemsConfiguration(itemProviders: [itemProvider])
+//
+//        let activityViewController = UIActivityViewController(activityItemsConfiguration: configuration)
+//        present(activityViewController, animated: true)
+        
+        do {
+            let groupActivitySharingController = try GroupActivitySharingController(groupActivity)
+            present(groupActivitySharingController, animated: true)
+        } catch { }
     }
 
     @IBAction func endGroupActivityBarButtonItemTapped(sender: UIBarButtonItem) {
@@ -279,12 +294,12 @@ extension ViewController {
 // MARK: Group Activity Functions
 extension ViewController {
     private func startGroupActivity() {
-        async {
+        Task {
             setupDrawTogetherActivitySessions()
 
             switch await groupActivity?.prepareForActivation() {
             case .activationPreferred:
-                groupActivity?.activate()
+                try await _ = groupActivity?.activate()
 
             case .activationDisabled:
                 groupDrawPrint("activationDisabled")
@@ -301,7 +316,7 @@ extension ViewController {
     private func setupDrawTogetherActivitySessions() {
         groupActivity = GroupDrawActivity()
 
-        let task = detach { [weak self] in
+        let task = Task.detached { [weak self] in
             guard let self = self else { return }
 
             for await session in GroupDrawActivity.sessions() {
@@ -315,7 +330,7 @@ extension ViewController {
     private func configureGroupSesssion(groupSession: GroupSession<GroupDrawActivity>) {
         resetCanvas()
 
-        let groupSessionMessenger = GroupSessionMessenger(session: groupSession)
+        let groupSessionMessenger = GroupSessionMessenger(session: groupSession, deliveryMode: .reliable)
         self.groupSession = groupSession
         self.groupSessionMessenger = groupSessionMessenger
 
@@ -326,7 +341,7 @@ extension ViewController {
 
             let newParticipants = activeParticipants.subtracting(groupSession.activeParticipants)
 
-            async {
+            Task {
                 do {
                     try await groupSessionMessenger.send(GroupDrawMessageType.catchup(drawing: self.canvasView.drawing),
                                                          to: .only(newParticipants))
@@ -351,7 +366,7 @@ extension ViewController {
             self.updateStartEndGroupActivityButtonState()
         }.store(in: &subscriptions)
 
-        let task = detach { [weak self] in
+        let task = Task.detached { [weak self] in
             guard let self = self else { return }
 
             for await (message, _) in groupSessionMessenger.messages(of: GroupDrawMessageType.self) {
@@ -367,7 +382,6 @@ extension ViewController {
 
                 case .clear:
                     await self.handleClearMessage()
-
                 }
             }
         }
@@ -423,7 +437,7 @@ extension ViewController {
 
     private func updateSessionCanvas(drawing: PKDrawing) {
         if let groupSessionMessenger = groupSessionMessenger {
-            async {
+            Task {
                 do {
                     try await groupSessionMessenger.send(GroupDrawMessageType.draw(drawing: drawing))
                 } catch { groupDrawPrint(error) }
@@ -433,7 +447,7 @@ extension ViewController {
 
     private func removeSessionStroke() {
         if let groupSessionMessenger = groupSessionMessenger {
-            async {
+            Task {
                 do {
                     try await groupSessionMessenger.send(GroupDrawMessageType.erase)
                 } catch { groupDrawPrint(error) }
@@ -443,7 +457,7 @@ extension ViewController {
 
     private func clearSessionCanvas() {
         if let groupSessionMessenger = groupSessionMessenger {
-            async {
+            Task {
                 do {
                     try await groupSessionMessenger.send(GroupDrawMessageType.clear)
                 } catch { groupDrawPrint(error) }
