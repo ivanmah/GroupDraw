@@ -11,10 +11,13 @@ import UIKit
 struct GroupDrawActivity: GroupActivity {
     var metadata: GroupActivityMetadata {
         get async {
+            let symbolConfiguration = UIImage.SymbolConfiguration(pointSize: 200)
+            let image = UIImage(systemName: "pencil.and.outline", withConfiguration: symbolConfiguration)
+            
             var metadata = GroupActivityMetadata()
             metadata.type = .generic
             metadata.title = "GroupDraw"
-            metadata.previewImage = UIImage(systemName: "scribble")?.cgImage
+            metadata.previewImage = image?.cgImage
 
             return metadata
         }
