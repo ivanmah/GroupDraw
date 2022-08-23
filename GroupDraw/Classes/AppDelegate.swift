@@ -16,6 +16,10 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         window = UIWindow(frame: UIScreen.main.bounds)
 
         if let window = window {
+            if #available(iOS 13.0, *) {
+                window.overrideUserInterfaceStyle = .light
+            }
+            
             let navigationController = UINavigationController()
             navigationController.viewControllers = [ViewController()]
 
